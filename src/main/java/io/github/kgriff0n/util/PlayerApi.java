@@ -32,7 +32,7 @@ public class PlayerApi {
         return profile;
     }
 
-    public static JSONArray getNameHistory(String uuid) {
+    public static JSONArray getNameHistoryLaby(String uuid) {
         PlayerSearch.LOGGER.info("Request sent to Laby API...");
         JSONArray array;
         try {
@@ -41,6 +41,19 @@ public class PlayerApi {
             throw new RuntimeException(e);
         }
         return array;
+    }
+
+    public static JSONArray getNameHistoryCrafty(String uuid) {
+        PlayerSearch.LOGGER.info("Request sent to Crafty API...");
+        JSONArray array;
+        try {
+            JSONObject jsonObject = (JSONObject) new JSONParser().parse(Unirest.get("https://api.crafty.gg/api/v2/players/%s".formatted(uuid)).header("User-Agent", "Mozilla/5.0 (compatible; PlayerSearch; +https://modrinth.com/mod/player-search)").asString().getBody());
+            JSONObject dataObject = (JSONObject) jsonObject.get("data");
+            array = (JSONArray) dataObject.get("usernames");
+        } catch (ParseException | UnirestException e) {
+            throw new RuntimeException(e);
+        }
+        return reverseJSONArray(array);
     }
 
     private static JSONObject getJSONObject(String url)
@@ -62,5 +75,13 @@ public class PlayerApi {
         }
 
         return obj;
+    }
+
+    private static JSONArray reverseJSONArray(JSONArray array) {
+        JSONArray reversedArray = new JSONArray();
+        for (int i = array.size() - 1; i >= 0; i--) {
+            reversedArray.add(array.get(i));
+        }
+        return reversedArray;
     }
 }

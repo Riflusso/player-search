@@ -5,13 +5,11 @@ import io.github.kgriff0n.PlayerSearch;
 import io.github.kgriff0n.util.GuiEntityRenderer;
 import io.github.kgriff0n.util.PlayerApi;
 import io.github.kgriff0n.util.dummy.DummyClientPlayerEntity;
-import net.minecraft.block.entity.SkullBlockEntity;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.EditBoxWidget;
 import net.minecraft.client.util.SkinTextures;
-import net.minecraft.component.type.ProfileComponent;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import org.jetbrains.annotations.Nullable;
@@ -36,6 +34,7 @@ public class PlayerScreen extends Screen {
     private String playerName = Text.translatable("gui.player_search.unknown").getString();
     private UUID playerUuid;
     private JSONArray nameHistory;
+    private JSONArray craftyHistory;
     private DummyClientPlayerEntity dummyClientPlayerEntity;
     private SkinTextures skinTextures;
 
@@ -69,7 +68,8 @@ public class PlayerScreen extends Screen {
                     this.playerUuid = UUID.fromString(parseUuid(request.get("id").toString()));
                     this.playerName = request.get("name").toString();
                     CompletableFuture.runAsync(() -> {
-                        this.nameHistory = PlayerApi.getNameHistory(this.playerUuid.toString());
+                        this.nameHistory = PlayerApi.getNameHistoryLaby(this.playerUuid.toString());
+                        this.craftyHistory = PlayerApi.getNameHistoryCrafty(this.playerUuid.toString());
                     });
                     this.profile = new GameProfile(this.playerUuid, this.playerName);
                     loadSKin(this.playerName);
@@ -81,7 +81,10 @@ public class PlayerScreen extends Screen {
             this.playerName = this.profile.getName();
             this.editBox.setText(this.playerName);
             this.previousText = this.playerName;
-            CompletableFuture.runAsync(() -> this.nameHistory = PlayerApi.getNameHistory(this.playerUuid.toString()));
+            CompletableFuture.runAsync(() -> {
+                this.nameHistory = PlayerApi.getNameHistoryLaby(this.playerUuid.toString());
+                this.craftyHistory = PlayerApi.getNameHistoryCrafty(this.playerUuid.toString());
+            });
             loadSKin(this.playerName);
             this.firstLoad = false;
         }
@@ -89,13 +92,9 @@ public class PlayerScreen extends Screen {
 
     private void loadSKin(String playerName) {
         PlayerSearch.LOGGER.info("Request sent to Mojang API...");
-        SkullBlockEntity.fetchProfileByName(playerName).thenAcceptAsync(profile ->
-            profile.ifPresent(
-                    gameProfile -> mc.getSkinProvider().fetchSkinTextures(gameProfile).thenAcceptAsync(
-                            textures -> skinTextures = textures
-                    )
-            )
-        );
+        mc.getSkinProvider().fetchSkinTextures(profile).thenAccept((textures) -> {
+            skinTextures = textures;
+        });
 
     }
 
@@ -126,8 +125,13 @@ public class PlayerScreen extends Screen {
         }
 
         if (this.nameHistory != null && this.nameHistory.size() != 0) {
-            context.drawText(this.textRenderer, Text.translatable("gui.player_search.name_history").formatted(Formatting.UNDERLINE), this.width * 2 / 3, (this.height / 10) + 20, 0xFFFFFF, true);
-            this.drawNameHistory(context, this.nameHistory, this.width * 2 / 3, this.height / 10 + 40);
+            context.drawText(this.textRenderer, Text.translatable("gui.player_search.laby_name_history").formatted(Formatting.UNDERLINE), this.width * 2 / 3, (this.height / 10) + 40, 0xFFFFFF, true);
+            this.drawNameHistory(context, this.nameHistory, this.width * 2 / 3, this.height / 10 + 60);
+        }
+
+        if (this.craftyHistory != null && this.craftyHistory.size() != 0) {
+            context.drawText(this.textRenderer, Text.translatable("gui.player_search.crafty_name_history").formatted(Formatting.UNDERLINE), this.width * 3 / 7, (this.height / 10) + 40, 0xFFFFFF, true);
+            this.drawNameHistory(context, this.craftyHistory, this.width * 3 / 7, this.height / 10 + 60);
         }
     }
 

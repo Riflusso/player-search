@@ -39,11 +39,13 @@ public class NameHistoryCommand {
 
         GameProfile profile = profiles.iterator().next();
         UUID uuid = profile.getId();
-        JSONArray nameHistory = PlayerApi.getNameHistory(uuid.toString());
+        JSONArray nameHistory = PlayerApi.getNameHistoryLaby(uuid.toString());
+        JSONArray craftyHistory = PlayerApi.getNameHistoryCrafty(uuid.toString());
         if (nameHistory.size() == 0) {
             client.player.sendMessage(Text.translatable("argument.player.unknown").formatted(Formatting.RED));
             return;
         }
+        client.player.sendMessage(Text.translatable("gui.player_search.laby_name_history").formatted(Formatting.DARK_GREEN));
         for (Object object : nameHistory) {
             JSONObject jsonObject = (JSONObject) object;
             String username = (String) jsonObject.get("username");
@@ -54,6 +56,18 @@ public class NameHistoryCommand {
                 date = "                      ";
             }
             client.player.sendMessage(Text.literal((String) date).formatted(Formatting.GRAY).append(Text.literal(username).formatted(Formatting.AQUA)));
+        }
+        client.player.sendMessage(Text.translatable("gui.player_search.crafty_name_history").formatted(Formatting.GREEN));
+        for (Object object : craftyHistory) {
+            JSONObject jsonObject = (JSONObject) object;
+            String username = (String) jsonObject.get("username");
+            Object date = jsonObject.get("changed_at");
+            if (date != null) {
+                date = date.toString().substring(0, 10).replace("-", "/") + "   -   ";
+            } else {
+                date = "                      ";
+            }
+            client.player.sendMessage(Text.literal((String) date).formatted(Formatting.GRAY).append(Text.literal(username).formatted(Formatting.DARK_AQUA)));
         }});
         return Command.SINGLE_SUCCESS;
     }

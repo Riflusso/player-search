@@ -2,6 +2,7 @@
   "playerSearch.title": "Player Search",
   "gui.player_search.search_hint": "Enter username or UUID...",
   "gui.player_search.button": "Search",
-  "gui.player_search.name_history": "Name History",
+  "gui.player_search.laby_name_history": "Laby Name History",
+  "gui.player_search.crafty_name_history": "Crafty Name History",
   "gui.player_search.unknown": "Unknown Player"
 }
